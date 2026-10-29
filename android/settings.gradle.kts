@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "AgentsAnywhereAndroid"
 include(":app")
+include(":watch")

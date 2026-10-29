@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Agents Anywhere 手表版 · 改动示意 v2</title>
+<style>
+  :root{
+    --canvas:#09090B; --ink:#FAFAFA; --inkSoft:#E5E5E5; --muted:#A3A3A3; --faint:#737373;
+    --subtle:#292929; --raised:#1F1F1F; --secondary:#424242; --accent:#39A887;
+    --errorText:#FCA5A5; --errorSurface:#2A1214; --warn:#F59E0B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0F0F12;font-family:"Microsoft YaHei","PingFang SC",sans-serif;padding:40px;display:flex;flex-wrap:wrap;gap:84px;align-items:flex-start}
+  .col{display:flex;flex-direction:column;gap:14px;align-items:center;flex:none;width:466px}
+  .cap{color:#9a9a9a;font-size:17px;text-align:center;max-width:466px;line-height:1.5}
+  .cap b{color:#FAFAFA}
+  .watch{width:466px;height:466px;border-radius:50%;background:var(--canvas);position:relative;overflow:hidden;flex:none;box-shadow:0 0 0 8px #1b1b1f}
+  /* 1dp = 2px */
+  .abs{position:absolute}
+
+  /* ---- 对话页 ---- */
+  .title{color:var(--ink);font-size:28px;font-weight:600;text-align:center}
+  .dots{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:10px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+  .dot.on{width:12px;height:12px;background:var(--accent)}
+  .status{color:var(--muted);font-size:22px}
+  .row{display:flex;align-items:center;gap:12px;justify-content:center;margin-top:8px}
+
+  .tool{color:var(--faint);font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .body{color:var(--ink);font-size:24px;line-height:1.35}
+  .body.dim{color:var(--inkSoft)}
+  .lab{color:var(--muted);font-size:18px;margin-bottom:3px}
+  .user{position:relative;padding-left:14px}
+  .user:before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:4px;border-radius:2px;background:var(--accent)}
+
+  /* 待发送条：宽 308.6px 高 48px 顶 248px */
+  .pending{width:309px;height:48px;border-radius:24px;background:var(--raised);display:flex;align-items:center;padding:0 4px 0 20px;gap:12px}
+  .pending .hint{color:var(--muted);font-size:20px;flex:1}
+  .pending .go{height:40px;border-radius:20px;background:var(--ink);color:#09090B;font-size:20px;font-weight:500;display:flex;align-items:center;padding:0 20px;white-space:nowrap}
+
+  /* 输入行：宽 308.6px 高 88px */
+  .composer{width:309px;height:88px;display:flex;align-items:center;gap:16px}
+  .field{width:197px;height:88px;border-radius:20px;background:var(--raised);border:1px solid var(--subtle);display:flex;align-items:center;padding:0 20px;color:var(--ink);font-size:26px}
+  .field.ph{color:var(--faint)}
+  .send{width:96px;height:88px;border-radius:48px;background:var(--ink);color:#09090B;font-size:24px;font-weight:500;display:flex;align-items:center;justify-content:center}
+  .send.off{background:var(--subtle);color:var(--faint)}
+
+  /* ---- 操作页 ---- */
+  .page{padding:20px 68px 0;display:flex;flex-direction:column;gap:14px}
+  .info{background:var(--raised);border-radius:20px;padding:10px 20px;display:flex;flex-direction:column;gap:2px}
+  .info .l{color:var(--faint);font-size:18px}
+  .info .v{color:var(--inkSoft);font-size:22px}
+  .sec{color:var(--faint);font-size:20px;letter-spacing:1.2px;padding-top:12px}
+  .cap2{color:var(--muted);font-size:22px;line-height:1.35}
+  .primary{height:88px;border-radius:44px;background:var(--ink);color:#09090B;font-size:26px;font-weight:500;display:flex;align-items:center;justify-content:center}
+  .secondary{height:60px;border-radius:30px;background:var(--secondary);color:var(--ink);font-size:24px;display:flex;align-items:center;justify-content:center}
+  .chip{background:var(--raised);border:1px solid var(--subtle);border-radius:18px;padding:16px 18px;color:var(--ink);font-size:24px;display:flex;justify-content:space-between}
+  .chip.on{border-color:var(--accent);background:#161f1c}
+  .chip .tick{color:var(--accent);font-weight:700}
+  .approve{background:rgba(245,158,11,.16);border-radius:20px;padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+  .approve .t{color:var(--ink);font-size:24px;font-weight:600}
+  .approve .m{color:var(--inkSoft);font-size:22px;line-height:1.35}
+  .approve .b{height:80px;border-radius:40px;background:var(--ink);color:#09090B;font-size:24px;font-weight:500;display:flex;align-items:center;justify-content:center}
+
+  .note{max-width:466px;color:#8b8b8b;font-size:16px;line-height:1.6}
+  .note b{color:#FAFAFA}
+  .legend{max-width:1450px;color:#9a9a9a;font-size:16px;line-height:1.8}
+  .legend b{color:#FAFAFA}
+  .legend code{background:#1b1b1f;padding:2px 7px;border-radius:5px;color:#65C4A6;font-size:15px}
+</style>
+</head>
+<body>
+
+<!-- ① 对话页 · 平时 -->
+<div class="col">
+  <div class="watch">
+    <div class="abs" style="left:68px;right:68px;top:16px">
+      <div class="title">重构登录页</div>
+      <div class="row"><span class="dot" style="width:12px;height:12px;background:var(--accent)"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="status">运行中 · Claude Code</span></div>
+    </div>
+    <div class="abs" style="left:68px;right:68px;top:110px;bottom:120px;display:flex;flex-direction:column;gap:18px;overflow:hidden">
+      <div class="tool">▸ 推理 · 先看现有登录逻辑再动手</div>
+      <div class="tool">▸ 命令 · ./gradlew :app:assembleDebug</div>
+      <div class="user"><div class="lab">你</div><div class="body">把登录按钮做大一点，符合手表风格</div></div>
+      <div class="tool">▸ 工具调用 · Edit WatchAuthScreen.kt</div>
+      <div class="body dim">改好了：主按钮 48dp 全宽胶囊，下面两个小胶囊并排。</div>
+    </div>
+    <div class="composer abs" style="left:79px;top:306px">
+      <div class="field ph">输入消息…</div>
+      <div class="send off">发送</div>
+    </div>
+  </div>
+  <div class="cap"><b>① 对话页（空闲）</b><br>无气泡、工具调用收成小灰行；底部输入框 + 发送合成一排</div>
+</div>
+
+<!-- ② 对话页 · 待发送 -->
+<div class="col">
+  <div class="watch">
+    <div class="abs" style="left:68px;right:68px;top:16px">
+      <div class="title">重构登录页</div>
+      <div class="row"><span class="dot" style="width:12px;height:12px;background:var(--accent)"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="status">运行中 · Claude Code</span></div>
+    </div>
+    <div class="abs" style="left:68px;right:68px;top:110px;bottom:210px;display:flex;flex-direction:column;gap:18px;overflow:hidden">
+      <div class="tool">▸ 推理 · 正在核对圆屏安全宽度</div>
+      <div class="tool">▸ 命令 · adb shell wm size</div>
+      <div class="user"><div class="lab">你</div><div class="body">顺便把操作页主次分开</div></div>
+      <div class="tool">▸ 工具调用 · Read ActionsPage.kt</div>
+    </div>
+    <!-- 待发送条：top = 124dp = 248px -->
+    <div class="pending abs" style="left:79px;top:248px">
+      <span class="hint">待发送</span>
+      <span class="go">终止并发送</span>
+    </div>
+    <div class="composer abs" style="left:79px;top:306px">
+      <div class="field">把操作页也改一下</div>
+      <div class="send">发送</div>
+    </div>
+  </div>
+  <div class="cap"><b>② 对话页（回合运行中，要插队）</b><br>不再弹红框：输入框上面多一条「待发送」小条，右侧「终止并发送」主动先终止当前回合再发出去。输入框本身始终可编辑</div>
+</div>
+
+<!-- ③ 操作页 -->
+<div class="col">
+  <div class="watch">
+    <div class="page">
+      <div class="title" style="font-size:30px">操作</div>
+      <div class="dots" style="margin-top:0"><span class="dot on"></span><span class="dot" style="width:12px;height:12px;background:var(--accent)"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="info"><span class="l">运行时</span><span class="v">Claude Code · /work/api</span></div>
+      <div class="info"><span class="l">状态</span><span class="v">运行中 · 设备在线</span></div>
+      <div class="sec">待审批（1）</div>
+      <div class="approve">
+        <span class="t">需要确认</span>
+        <span class="m">允许执行 rm -rf build/ 吗？</span>
+        <span class="b">允许</span>
+      </div>
+      <div class="sec">接管</div>
+      <div class="cap2">未接管：切换模型前需要先接管。</div>
+      <div class="primary">接管会话</div>
+      <div class="sec">终止</div>
+      <div class="primary">终止当前回合</div>
+      <div class="sec">模型</div>
+      <div class="chip on"><span>claude-sonnet-4.5</span><span class="tick">✓</span></div>
+    </div>
+  </div>
+  <div class="cap"><b>③ 操作页（主次分开）</b><br>顶部运行时/状态压成最小号灰字；主操作 44dp 全宽胶囊，次级 30dp；分节标题更小更淡</div>
+</div>
+
+<div class="legend">
+  <b>尺寸依据（1dp = 2px，面板 466×466，内切圆半径 116.5dp）</b><br>
+  · 待发送条：宽 154.3dp（与输入行同宽）、高 24dp、顶边 124dp —— 距圆边 5.0dp 以上，不会被切角<br>
+  · 输入行：宽 154.3dp、高 44dp、顶边 153dp；字段 98.3dp + 间距 8dp + 发送键 48dp<br>
+  · 操作页主操作 44dp / 次级 30dp / 审批内按钮 40dp；顶部信息行标签 9sp、值 11sp
+</div>
+
+</body>
+</html>

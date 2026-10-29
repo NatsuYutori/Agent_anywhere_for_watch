@@ -1,0 +1,8 @@
+keystore.properties
+*.jks
+*.keystore
+build/
+
+# Output of scripts/screenshot.ps1 and scripts/diagnose.ps1
+screenshots/
+diagnostics/

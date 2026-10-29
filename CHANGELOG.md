@@ -9,6 +9,10 @@
 - 修复接入 Codex 已有会话后，补入的旧消息出现在最新消息下方、历史消息交错或重排后顺序没有更新的问题；升级后同步会自动校准已有记录。（[#480](https://github.com/anywhere-labs/Agents-Anywhere/pull/480)）
 - Connector 上报的时间线条目序号超出范围时只拒绝这条上报，同批其他消息照常保存，不再让整个会话之后的消息都存不进数据库；升级前已经积压的条目会按原顺序排到时间线末尾保存，持续写入失败的会话也不再每秒重试刷屏日志。（[#464](https://github.com/anywhere-labs/Agents-Anywhere/pull/464)）
 
+### Android
+
+- 手表端可以按工作设备筛选会话；一个账号接多台设备时，同名工作目录会分别标出所属设备，新建对话也能直接指定设备、运行时和目录，写好第一句话即可开始。（[android/watch](android/watch/README.zh-CN.md)）
+
 ## 2.1.0（2026-10-27）
 
 [发布说明](docs/releases/2.1.0.md) · [GitHub Release](https://github.com/anywhere-labs/Agents-Anywhere/releases/tag/v2.1.0) · [与 2.0.3 的差异](https://github.com/anywhere-labs/Agents-Anywhere/compare/v2.0.3...v2.1.0)

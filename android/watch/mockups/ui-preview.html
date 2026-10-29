@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Agents Anywhere 手表版 · 界面示意图</title>
+<style>
+  :root{
+    --canvas:#09090B; --ink:#FAFAFA; --inkSoft:#E5E5E5; --muted:#A3A3A3; --faint:#737373;
+    --subtle:#292929; --raised:#1F1F1F; --primary:#FAFAFA; --onPrimary:#09090B;
+    --secondary:#424242; --matched:#191919; --errSurf:#2A1214; --errBorder:#5F2429; --errText:#FCA5A5;
+    --running:#10B981; --transitioning:#3B82F6; --active:#F59E0B;
+    --accent:#39A887; --accentText:#65C4A6; --warning:#F59E0B; --success:#22C55E;
+    --bubble:#2A2A2A; --neutral:#2D2D2D;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#050506; color:var(--ink);
+    font-family:"Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    padding:48px 56px 64px; width:2228px;
+  }
+  .pagehead{border-bottom:1px solid #1e1e22;padding-bottom:22px;margin-bottom:40px}
+  .pagehead h1{font-size:34px;font-weight:600;letter-spacing:.5px}
+  .pagehead p{font-size:17px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .pagehead code{font-family:Consolas,monospace;font-size:15px;color:var(--accentText);background:#141416;padding:2px 7px;border-radius:5px}
+  .grid{display:grid;grid-template-columns:repeat(4,466px);gap:44px 84px;align-items:start}
+  .span2{grid-column:span 2}
+  .watch{width:466px}
+  .face{
+    position:relative;width:466px;height:466px;border-radius:50%;
+    background:var(--canvas);overflow:hidden;
+    box-shadow:0 0 0 7px #17171a, 0 0 0 10px #2f2f35, 0 0 0 11px #0c0c0e, 0 20px 45px rgba(0,0,0,.65);
+  }
+  .face::after{
+    content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle at 32% 22%, rgba(255,255,255,.045), transparent 55%);
+  }
+  /* 1dp = 2px：水平安全边距 34dp=68px，页间距 6/7dp=12/14px */
+  .screen{
+    position:absolute;inset:0;padding:12px 68px;
+    display:flex;flex-direction:column;gap:12px;align-items:center;
+  }
+  .screen.conv{padding:16px 68px;gap:14px}
+  .title{font-size:30px;font-weight:600;text-align:center;line-height:40px}
+  .title.sm{font-size:28px;line-height:36px}
+  .caption{font-size:22px;color:var(--muted);line-height:28px}
+  .center{text-align:center}
+  .hdr{display:flex;flex-direction:column;gap:4px;align-items:center;width:100%}
+  .dotrow{display:flex;gap:8px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+  .dot.cur{width:12px;height:12px;background:var(--accent)}
+  /* 主按钮：165dp 宽 x 48dp 高，全圆角 */
+  .btn-primary{
+    width:330px;height:96px;border-radius:48px;background:var(--primary);color:var(--onPrimary);
+    display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:500;
+  }
+  .btn-primary.reg{width:330px;height:96px}
+  .btn-secondary{
+    width:330px;height:68px;border-radius:34px;background:var(--secondary);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:26px;
+  }
+  /* 两个并排椭圆：整行 115.1dp=230px，每个 53.55dp=107px，高 26dp=52px */
+  .pillrow{display:flex;gap:16px;width:230px}
+  .pill{
+    width:107px;height:52px;border-radius:26px;background:var(--secondary);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:500;
+  }
+  .field{
+    width:330px;height:72px;border-radius:20px;border:2px solid var(--subtle);
+    background:var(--raised);padding:0 20px;display:flex;align-items:center;
+    font-size:26px;color:var(--ink);
+  }
+  .field .ph{color:var(--faint)}
+  .field.focused{border-color:var(--accent)}
+  .field.tall{width:197px;height:88px}
+  /* 侧栏 */
+  .chip{width:100%;border-radius:18px;border:2px solid var(--subtle);background:var(--raised);padding:16px 18px;display:flex;align-items:center;gap:10px}
+  .chip.sel{background:var(--neutral);border-color:var(--accent)}
+  .chip .txt{font-size:24px;color:var(--ink);flex:1;line-height:1.25}
+  .chip .tick{font-size:24px;font-weight:700;color:var(--accent)}
+  .rowcard{width:100%;border-radius:20px;border:2px solid var(--subtle);background:var(--raised);padding:14px 20px;display:flex;flex-direction:column;gap:4px}
+  .rowcard.sel{background:var(--neutral);border-color:var(--accent)}
+  .rowcard .k{font-size:20px;color:var(--muted)}
+  .rowcard .v{font-size:24px;color:var(--ink);line-height:1.3}
+  .sect{width:100%;font-size:22px;font-weight:600;color:var(--muted);padding-top:8px}
+  .proj{width:100%;border-radius:18px;border:2px solid var(--subtle);background:var(--raised);padding:14px 18px;display:flex;flex-direction:column;gap:2px}
+  .proj.sel{background:var(--neutral);border-color:var(--accent)}
+  .proj .n{font-size:24px;font-weight:600}
+  .proj .m{font-size:20px;color:var(--muted)}
+  .ses{width:100%;border-radius:20px;border:2px solid var(--subtle);background:var(--raised);padding:14px 18px;display:flex;gap:14px;align-items:center}
+  .ses.sel{background:var(--neutral);border-color:var(--accent)}
+  .ses .bul{width:14px;height:14px;border-radius:50%;flex:none}
+  .ses .body{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .ses .n{font-size:24px}
+  .ses .n.unread{font-weight:600}
+  .ses .m{font-size:20px;color:var(--muted)}
+  .ses .w{font-size:20px;color:var(--faint)}
+  .notice{width:100%;text-align:center;font-size:22px;line-height:28px;color:var(--success)}
+  .approval{width:100%;border-radius:20px;background:rgba(245,158,11,.16);padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+  .approval .t{font-size:24px;font-weight:600}
+  .approval .m{font-size:22px;line-height:28px;color:var(--inkSoft)}
+  /* 对话：无框，靠字号/颜色分层 */
+  .msgs{width:100%;flex:1;display:flex;flex-direction:column;gap:18px;overflow:hidden;justify-content:flex-end}
+  .entry{width:100%;display:flex;gap:14px}
+  .rule{width:4px;border-radius:2px;background:var(--accent);flex:none}
+  .entry .col{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+  .who{font-size:18px;font-weight:500;color:var(--faint)}
+  .who.me{color:var(--accentText)}
+  .say{font-size:24px;line-height:32px;color:var(--ink)}
+  .aside{font-size:20px;line-height:26px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 输入行：整行 154.3dp=309px，输入框 98.3dp=197px，发送 48dp=96px */
+  .composer{display:flex;gap:16px;width:309px;height:88px;align-items:center;margin-top:14px}
+  .send{
+    width:96px;height:88px;border-radius:44px;background:var(--primary);color:var(--onPrimary);
+    display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:500;flex:none;
+  }
+  .label{padding-top:16px;display:flex;flex-direction:column;gap:6px}
+  .label b{font-size:19px;font-weight:600}
+  .label .idx{color:var(--accent);font-weight:600}
+  .label span{font-size:15px;color:var(--muted);line-height:1.55}
+  .card{background:#0e0e11;border:1px solid #1f1f24;border-radius:14px;padding:26px 28px}
+  .card h2{font-size:21px;font-weight:600;margin-bottom:16px}
+  .card ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .card li{font-size:16px;color:var(--muted);line-height:1.6;padding-left:18px;position:relative}
+  .card li::before{content:"—";position:absolute;left:0;color:var(--accent)}
+  .card li b{color:var(--ink);font-weight:600}
+  .card code{font-family:Consolas,monospace;font-size:14px;color:var(--accentText)}
+  .swipe{display:flex;align-items:center;gap:14px;font-size:17px;color:var(--muted);flex-wrap:wrap;margin-top:6px}
+  .kbd{background:#17171b;border:1px solid #2b2b31;border-radius:8px;padding:7px 13px;font-size:16px;color:var(--ink)}
+  .arrow{color:var(--accent);font-size:22px}
+  .note{font-size:14px;color:var(--faint);margin-top:10px}
+</style>
+</head>
+<body>
+
+<div class="pagehead">
+  <h1>Agents Anywhere · 手表版界面示意图</h1>
+  <p>
+    按 <code>android/watch</code> 的 Compose 源码与暗色主题令牌 1:1 还原，屏幕 466×466、density 320（1dp = 2px）。<br>
+    <b>这是示意图，不是真机截图</b>——手表还没连上。布局、字号、间距、圆角、配色、以及每个控件的宽度都取自代码里的真实值。
+  </p>
+</div>
+
+<div class="grid">
+
+  <!-- ============ 1. 登录 ============ -->
+  <div class="watch">
+    <div class="face"><div class="screen">
+      <div class="hdr">
+        <div class="title">Agents Anywhere</div>
+        <div class="caption">密码明文不出手表</div>
+      </div>
+      <div class="field"><span class="ph">邮箱</span></div>
+      <div class="field"><span class="ph">密码</span></div>
+      <div class="btn-primary">登录</div>
+      <div class="pillrow">
+        <div class="pill">注册</div>
+        <div class="pill">服务器</div>
+      </div>
+    </div></div>
+    <div class="label">
+      <b>登录</b>
+      <span><b>登录按钮做成 165dp 全宽 × 48dp 高的胶囊</b>，是全屏最大的控件，位置放在圆最宽的地方所以不裁角。
+      「注册」「服务器」缩成两个小椭圆并排放在下面——<b>这一行只有 115dp 宽，是按它所在高度的圆内可用宽度算出来的</b>，再宽就会被圆边切掉。</span>
+    </div>
+  </div>
+
+  <!-- ============ 2. 注册 ============ -->
+  <div class="watch">
+    <div class="face"><div class="screen">
+      <div class="hdr">
+        <div class="title">Agents Anywhere</div>
+        <div class="caption">注册新账号</div>
+      </div>
+      <div class="notice">验证码已发送到 me@example.com</div>
+      <div class="field">me@example.com</div>
+      <div class="field focused">392017</div>
+      <div class="btn-secondary">重新发送（45s）</div>
+      <div class="field">••••••••••</div>
+      <div class="field"><span class="ph">昵称（可选）</span></div>
+      <div class="btn-primary reg">注册并登录</div>
+      <div class="pillrow">
+        <div class="pill">返回登录</div>
+        <div class="pill">服务器</div>
+      </div>
+    </div></div>
+    <div class="label">
+      <b>注册 / 验证码</b>
+      <span>主按钮和椭圆行的尺寸与登录页完全一致；字段更多，所以会超出圆屏、需要滚动——被切掉的部分就是滚动后才能看到的。滚到底时布局会正好落在设计位置上。</span>
+    </div>
+  </div>
+
+  <!-- ============ 说明面板 ============ -->
+  <div class="span2">
+    <div class="card">
+      <h2>这一版改了什么</h2>
+      <ul>
+        <li><b>登录按钮放大</b>：48dp 高、165dp 全宽、全圆角，放在圆屏最宽处；「注册」「服务器」缩成两个并排小椭圆。</li>
+        <li><b>椭圆不超出圆屏</b>：宽度不是拍的，是按圆内几何算的 —— 一行控件放在距圆心 dy 处，最远角的距离必须 ≤ 半径。写成了 <code>WatchRound.maxRowWidth()</code> 并有 9 个单元测试断言，所以"不会被切"是可验证的而不是估计的。</li>
+        <li><b>对话去掉气泡</b>：不再有背景框，改用字号和颜色分层 —— 代理正文 12sp，自己的发言带一条强调色竖线，其余一律小字。</li>
+        <li><b>思考与工具调用自动折叠</b>：思考、命令、工具调用、文件改动、子代理、诊断、产物都收成一行 10sp 灰字（<code>▸ 命令 · …</code>），点一下展开、再点收起。</li>
+        <li><b>输入与发送并排</b>：整合成底部一行（输入框 98dp + 发送胶囊 48dp），整行 154dp 同样按圆内几何算过。</li>
+        <li><b>没有登录二次验证</b>：上游 <code>/auth/login</code> 只校验密码，验证码只用于注册和绑定邮箱，所以没加假的验证码步骤。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ 3. 侧栏 ============ -->
+  <div class="watch">
+    <div class="face"><div class="screen">
+      <div class="hdr">
+        <div class="title">侧栏</div>
+        <div class="caption">3 个工作目录 · 5 个对话</div>
+      </div>
+      <div class="dotrow"><div class="dot cur"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      <div class="chip sel"><span class="txt">全部目录</span><span class="tick">✓</span></div>
+      <div class="proj sel"><span class="n">anypro</span><span class="m">2 个对话 · E:\anypro</span></div>
+      <div class="ses sel">
+        <span class="bul" style="background:var(--running)"></span>
+        <span class="body">
+          <span class="n unread">修复登录超时</span>
+          <span class="m">运行中 · 2 分钟前 · 已接管</span>
+          <span class="w">E:\anypro</span>
+        </span>
+      </div>
+      <div class="ses">
+        <span class="bul" style="background:var(--transitioning)"></span>
+        <span class="body">
+          <span class="n">重构侧栏组件</span>
+          <span class="m">等待中 · 12 分钟前</span>
+        </span>
+      </div>
+    </div></div>
+    <div class="label">
+      <b><span class="idx">[0]</span> 侧栏</b>
+      <span>工作目录 + 目录内的对话。状态点：绿=运行中、蓝=等待、橙=等待审批、灰=空闲。从对话页手指<b>往右拖</b>到这里。</span>
+    </div>
+  </div>
+
+  <!-- ============ 4. 对话（默认页） ============ -->
+  <div class="watch">
+    <div class="face"><div class="screen conv">
+      <div class="title sm">修复登录超时</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="dotrow"><div class="dot"></div><div class="dot cur"></div><div class="dot"></div><div class="dot"></div></div>
+        <div class="caption">运行中 · Claude Code</div>
+      </div>
+      <div class="msgs">
+        <div class="entry">
+          <span class="col">
+            <span class="who">代理</span>
+            <span class="say">连接池默认 5 个连接，超时后没归还。改成 try-with-resources 就能释放。</span>
+          </span>
+        </div>
+        <div class="entry">
+          <span class="col">
+            <span class="aside">▸ 命令 · $ grep -rn "OkHttpClient" app/src</span>
+          </span>
+        </div>
+        <div class="entry">
+          <span class="rule"></span>
+          <span class="col">
+            <span class="who me">我</span>
+            <span class="say">好，顺手把超时改成 10 秒。</span>
+          </span>
+        </div>
+      </div>
+      <div class="composer">
+        <div class="field tall"><span class="ph">输入消息…</span></div>
+        <div class="send">发送</div>
+      </div>
+    </div></div>
+    <div class="label">
+      <b><span class="idx">[1]</span> 对话（启动页）</b>
+      <span><b>没有气泡框</b>：代理正文最大最亮，自己的发言左侧一条绿色竖线，「命令 / 思考 / 工具」收成一行灰字（点开才展开）。
+      底部<b>输入框和发送并排一行</b>，整行 154dp —— 宽了会被圆边切掉。</span>
+    </div>
+  </div>
+
+  <!-- ============ 5. 操作（上） ============ -->
+  <div class="watch">
+    <div class="face"><div class="screen">
+      <div class="hdr">
+        <div class="title">操作</div>
+        <div class="caption">修复登录超时</div>
+      </div>
+      <div class="dotrow"><div class="dot"></div><div class="dot"></div><div class="dot cur"></div><div class="dot"></div></div>
+      <div class="rowcard"><span class="k">运行时</span><span class="v">Claude Code · 本机</span></div>
+      <div class="rowcard"><span class="k">状态</span><span class="v">运行中 · 设备在线</span></div>
+      <div class="sect">待审批（1）</div>
+      <div class="approval">
+        <span class="t">允许执行这条命令？</span>
+        <span class="m">rm -rf build/ 会删除构建产物。</span>
+        <div class="btn-primary">允许</div>
+      </div>
+    </div></div>
+    <div class="label">
+      <b><span class="idx">[2]</span> 操作（上半屏）</b>
+      <span>从对话页手指<b>往左拖</b>到这里。运行状态、以及 agent 等你确认的审批。需要填内容的审批会提示去手机/电脑上完成。</span>
+    </div>
+  </div>
+
+  <!-- ============ 6. 操作（下） ============ -->
+  <div class="watch">
+    <div class="face"><div class="screen" style="justify-content:flex-start">
+      <div class="sect" style="padding-top:0">接管</div>
+      <div class="caption">已接管：可以切换模型和权限。</div>
+      <div class="btn-secondary">释放接管</div>
+      <div class="sect">终止</div>
+      <div class="btn-primary">终止当前回合</div>
+      <div class="sect">模型</div>
+      <div class="chip sel"><span class="txt">claude-sonnet-4.5</span><span class="tick">✓</span></div>
+      <div class="chip"><span class="txt">claude-opus-4.1</span></div>
+      <div class="sect">权限</div>
+      <div class="chip"><span class="txt">默认权限</span></div>
+    </div></div>
+    <div class="label">
+      <b><span class="idx">[2]</span> 操作（往下滚）</b>
+      <span>接管 / 释放、终止当前回合、切换模型、切换权限。<b>切模型和权限前必须先接管</b>，跟手机版规则一致；不接管时这些选项是灰的。</span>
+    </div>
+  </div>
+
+  <!-- ============ 7. 账号（上） ============ -->
+  <div class="watch">
+    <div class="face"><div class="screen">
+      <div class="hdr">
+        <div class="title">账号</div>
+        <div class="caption">小明</div>
+      </div>
+      <div class="dotrow"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot cur"></div></div>
+      <div class="rowcard"><span class="k">邮箱</span><span class="v">me@example.com</span></div>
+      <div class="rowcard"><span class="k">昵称</span><span class="v">小明</span></div>
+      <div class="rowcard"><span class="k">角色</span><span class="v">成员</span></div>
+      <div class="rowcard"><span class="k">邮箱验证</span><span class="v">已验证</span></div>
+      <div class="btn-secondary">修改昵称</div>
+    </div></div>
+    <div class="label">
+      <b><span class="idx">[3]</span> 账号（上半屏）</b>
+      <span>从对话页<b>往左拖两次</b>到这里。没绑邮箱时这里是「绑定邮箱」，绑了但没验证时是「验证邮箱」，两者都会展开验证码输入。</span>
+    </div>
+  </div>
+
+  <!-- ============ 8. 账号（下） ============ -->
+  <div class="watch">
+    <div class="face"><div class="screen" style="justify-content:flex-start">
+      <div class="rowcard"><span class="k">服务器</span><span class="v">https://web.agents-anywhere.com</span></div>
+      <div class="rowcard"><span class="k">用户 ID</span><span class="v">a1b2c3d4e5f6</span></div>
+      <div class="btn-secondary">刷新账号信息</div>
+      <div class="btn-primary">退出登录</div>
+    </div></div>
+    <div class="label">
+      <b><span class="idx">[3]</span> 账号（往下滚）</b>
+      <span>服务器地址、用户 ID、刷新、退出登录。退出后回到登录页，本地只留下服务端地址。</span>
+    </div>
+  </div>
+
+  <!-- ============ 滑动说明 ============ -->
+  <div class="span2">
+    <div class="card">
+      <h2>四个界面怎么翻</h2>
+      <div class="swipe">
+        <span class="arrow">→</span><span>（手指往右拖）</span>
+        <span class="kbd">[0] 侧栏</span>
+        <span class="kbd">[1] 对话 · 默认</span>
+        <span>（手指往左拖）</span><span class="arrow">←</span>
+        <span class="kbd">[2] 操作</span>
+        <span>（再往左拖）</span><span class="arrow">←</span>
+        <span class="kbd">[3] 账号</span>
+      </div>
+      <ul style="margin-top:20px">
+        <li>四页是一条横向滑动的连续页面，顶部的四个小圆点表示当前在第几页（绿色大点是当前页）。</li>
+        <li>启动页固定是 <b>[1] 对话</b>：<code>WatchPageOrder = [Sidebar, Conversation, Actions, Account]</code>，想改方向只改这一行。</li>
+        <li>侧栏点一个对话会切换会话并自动跳回对话页。</li>
+      </ul>
+      <div class="note">
+        圆内几何：把一行控件放在距圆心 dy 处，只要它的角满足 √((w/2)² + dy²) ≤ 半径−5dp 就不会被圆边切到。
+        登录页椭圆行算得 115.1dp、输入行 154.3dp、主按钮在中部所以能吃满 165dp。
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

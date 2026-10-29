@@ -23,6 +23,42 @@
 
 **Agents Anywhere** is an open-source agent workbench across your devices. Connect a work machine running **Codex, Claude Code or DeepSeek Harness**, then view sessions, respond to requests, manage files and use terminals from desktop, mobile and Web. Agents execute tasks on the connected work machine.
 
+> ### About this repository
+>
+> This is a fork of [anywhere-labs/Agents-Anywhere](https://github.com/anywhere-labs/Agents-Anywhere). All upstream
+> clients (mobile, desktop, Web, server, connector) are kept as they are; the addition is a **remote control client
+> for round-screen smartwatches** under `android/watch/`, with the layout and input model rebuilt for a 466×466 panel.
+> Both upstream and this fork are released under [MIT](LICENSE), and upstream attribution is preserved.
+
+## Watch client (added by this fork)
+
+The watch does not run agents. It is a remote control: the agent keeps running on the machine with the Connector,
+and the watch shows the conversation, sends replies, answers approvals and switches models. The four pages are
+Conversation, Workspace (grouped by working directory, filterable per device, with a "new session" entry),
+Actions (takeover, model, permission, approvals, usage), and Account.
+
+<p align="center">
+  <img src="android/watch/mockups/ui-preview-v2.png" alt="Watch client layout preview" width="70%">
+  <br>
+  <sub>Layout preview (not a device screenshot)</sub>
+</p>
+
+Target: round 466×466 panels such as the OPPO Watch X series, Android 11 (API 30), `armeabi-v7a`; `minSdk 26`,
+`targetSdk 36`. What the fork has to handle that the phone client does not: inscribed-circle geometry, the
+rotation crown (one notch scrolls the current page, never changes pages), live output over the upstream
+`feature/realtime` WebSocket with polling as fallback, a one-word conversation state (live / reconnecting /
+run failed / blocked / device offline), usage parsed from events, per-device filtering for accounts with several
+work machines, and a one-screen new-session composer.
+
+Details, protocol checks, geometry constants, crown calibration and known limitations:
+**[android/watch/README.zh-CN.md](android/watch/README.zh-CN.md)** (Chinese).
+
+```bash
+cd android
+./gradlew :watch:assembleRelease      # needs android/watch/keystore.properties
+./gradlew :watch:testDebugUnitTest    # geometry, crown counting, usage parsing, approval forms, auth payloads
+```
+
 ## Downloads and access
 
 Install the desktop client on your work machine, then access it from your phone, tablet or Web. Use the Connector CLI to connect Linux and headless servers. Each client can connect to Cloud or a self-hosted service.

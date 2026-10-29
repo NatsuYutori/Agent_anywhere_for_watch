@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches AAColor dark canvas so the window background does not flash white. -->
+    <color name="aa_canvas">#FF09090B</color>
+    <color name="ic_launcher_background">#FF0A0A0B</color>
+</resources>

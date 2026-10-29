@@ -23,6 +23,63 @@
 
 **Agents Anywhere** 是跨设备的开源 Agent 工作台。连接运行 **Codex、Claude Code 或 DeepSeek Harness** 的工作设备，在桌面、手机和 Web 查看会话、回复请求、管理文件与终端。Agent 在连接的工作设备上执行任务。
 
+> ### 关于本仓库
+>
+> 这是 [anywhere-labs/Agents-Anywhere](https://github.com/anywhere-labs/Agents-Anywhere) 的分支。上游能力
+> （手机 App、桌面端、Web、服务端、Connector）全部保留，**新增了一个面向圆形屏智能手表的遥控端**
+> `android/watch/`，并针对 466×466 圆屏重做了整套布局与输入。上游与本仓库均以 [MIT](LICENSE) 许可发布，
+> 上游署名保留在 [LICENSE](LICENSE) 与各模块原文档中。
+
+## 手表端（本分支新增）
+
+手表**不执行** Agent 任务，只做遥控器：Agent 仍然跑在装了 Connector 的电脑或手机上，手表负责看会话、
+回消息、审批请求、切换模型。这个分工是上游本身的设计，手表版只是把「控制」这一半做成适合圆屏的四个界面。
+
+<p align="center">
+  <img src="android/watch/mockups/ui-preview-v2.png" alt="手表端界面示意：对话、工作区、操作、账号" width="70%">
+  <br>
+  <sub>界面示意图（非真机截图）</sub>
+</p>
+
+**目标设备**：OPPO Watch X 系列等 466×466 圆形屏、Android 11（API 30）、`armeabi-v7a`；`minSdk 26`，`targetSdk 36`。
+
+| 页面 | 内容 |
+| --- | --- |
+| **对话**（启动页） | 当前会话的时间线 + 底部一行「输入框 + 发送」；回合运行中整行变成「终止」 |
+| **工作区** | 按工作目录分组的会话列表，**多设备账号可按设备过滤**，并有「＋ 新会话」入口 |
+| **操作** | 接管/释放、切换模型、切换权限、待审批（含需要填写的审批表单）、用量统计 |
+| **账号** | 头像与昵称、邮箱绑定、服务器地址、退出登录 |
+
+相对上游手机端，手表端需要单独处理的事情：
+
+- **圆屏几何**：所有控件都要落在内切圆里，宽度按行所在高度反算（`WatchRound.maxRowWidth`），正文宽度 165dp。
+- **表冠**：只认「一格」，一格滚动当前页 30dp，不翻页；一批合成一次线性滑动。翻页交给手指滑动。
+- **实时输出**：接上游 `feature/realtime` 的 WebSocket，事件逐条归约进会话状态；轮询保留为快照与兜底。
+- **对话状态**：右上角一个词就是状态出口（实时／重连中／运行失败／已阻塞／设备离线），运行时的 `notification`
+  通知（如额度超限）以细带显示在时间线之上。
+- **用量**：从事件里解析轮数、步数、tokens，并区分「运行时没上报」与「真的是 0」。
+- **多设备**：一个账号挂多台工作设备时，工作区页可按设备过滤同名目录，新建会话也指定设备。
+- **新会话**：设备／运行时／目录三个胶囊预选好，只输入第一句话即可创建。
+
+详细的协议核对、圆屏常数表、表冠标定方法、测试覆盖与已知限制见 **[android/watch/README.zh-CN.md](android/watch/README.zh-CN.md)**。
+
+### 构建与安装
+
+```bash
+cd android
+
+# 手表端正式包（需要 android/watch/keystore.properties，见手表文档的签名一节）
+./gradlew :watch:assembleRelease
+
+# 单元测试：圆屏几何、表冠计数、权限翻译、用量解析、审批表单、鉴权报文
+./gradlew :watch:testDebugUnitTest
+
+cd ..
+adb install -r android/watch/build/outputs/apk/release/watch-release.apk
+```
+
+手机上安装上游的手机端 APK，电脑上运行 Connector，手表登录同一个账号即可接管会话。
+
 ## 下载与入口
 
 在工作设备上安装桌面客户端，再通过手机、平板或 Web 访问。Linux 和无图形界面的服务器可使用 Connector CLI 接入。各客户端均可连接 Cloud 或自托管服务。
@@ -160,4 +217,6 @@ docker compose -f docker/docker-compose.postgres.yml up --build
 
 ## 开源许可
 
-MIT。README 中的产品截图与品牌素材说明见[图片来源与复现方式](docs/readme-artwork/README.md)。
+MIT，全文见 [LICENSE](LICENSE)。上游版权归 Agents Anywhere Contributors，本分支的手表端代码
+（`android/watch/`）由 NatsuYutori 维护。README 中的产品截图与品牌素材说明见
+[图片来源与复现方式](docs/readme-artwork/README.md)。
