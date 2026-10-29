@@ -59,6 +59,22 @@ cd android
 ./gradlew :watch:testDebugUnitTest    # geometry, crown counting, usage parsing, approval forms, auth payloads
 ```
 
+### Following upstream
+
+This repository is a real **fork**: `main` sits directly on the upstream `main`, with the watch client
+as one commit on top (currently 1 ahead, 0 behind). To take upstream changes:
+
+```bash
+git fetch upstream main      # upstream already points at anywhere-labs/Agents-Anywhere
+git merge upstream/main
+cd android && ./gradlew :watch:testDebugUnitTest
+```
+
+Recompile the watch module after a merge that touches the shared modules it reuses
+(`android/app/.../feature/auth|devices|realtime|sessiondetail|sessions` and `api/`). 2.1.0 removed
+`steer` (sending while a turn runs), so the watch now always calls `sendMessage` and reports a
+refusal as "the runtime is not accepting messages" — that kind of drift shows up as one compile error.
+
 ## Downloads and access
 
 Install the desktop client on your work machine, then access it from your phone, tablet or Web. Use the Connector CLI to connect Linux and headless servers. Each client can connect to Cloud or a self-hosted service.

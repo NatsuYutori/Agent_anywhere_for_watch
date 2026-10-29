@@ -80,6 +80,21 @@ adb install -r android/watch/build/outputs/apk/release/watch-release.apk
 
 手机上安装上游的手机端 APK，电脑上运行 Connector，手表登录同一个账号即可接管会话。
 
+### 同步上游
+
+本仓库是官方仓库的 **fork**，`main` 直接以官方 `main` 为基线，手表端改动作为独立提交叠在它上面
+（当前 `ahead 1`，`behind 0`）。跟进官方更新：
+
+```bash
+git fetch upstream main      # upstream 已指向 anywhere-labs/Agents-Anywhere
+git merge upstream/main
+cd android && ./gradlew :watch:testDebugUnitTest
+```
+
+合并后如果官方改动了手表复用到的共享模块（`android/app/.../feature/auth|devices|realtime|sessiondetail|sessions`
+和 `api/`），要重新编译手表端。2.1.0 就删掉了 `steer`（发送即插话），手表端因此改成一律走
+`sendMessage`、由发送后的拒绝来表示「运行时当前不接受新消息」——这类改动在合并后编译一次就能发现。
+
 ## 下载与入口
 
 在工作设备上安装桌面客户端，再通过手机、平板或 Web 访问。Linux 和无图形界面的服务器可使用 Connector CLI 接入。各客户端均可连接 Cloud 或自托管服务。
