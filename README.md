@@ -41,6 +41,8 @@
   <sub>界面示意图（非真机截图）</sub>
 </p>
 
+**下载**：[最新 Release](https://github.com/NatsuYutori/Agent_anywhere_for_watch/releases/latest) —— 手表端 APK 与完整源码包都在里面。
+
 **目标设备**：OPPO Watch X 系列等 466×466 圆形屏、Android 11（API 30）、`armeabi-v7a`；`minSdk 26`，`targetSdk 36`。
 
 | 页面 | 内容 |

@@ -43,6 +43,8 @@ Actions (takeover, model, permission, approvals, usage), and Account.
   <sub>Layout preview (not a device screenshot)</sub>
 </p>
 
+**Download**: the [latest release](https://github.com/NatsuYutori/Agent_anywhere_for_watch/releases/latest) carries the watch APK and a full source archive.
+
 Target: round 466×466 panels such as the OPPO Watch X series, Android 11 (API 30), `armeabi-v7a`; `minSdk 26`,
 `targetSdk 36`. What the fork has to handle that the phone client does not: inscribed-circle geometry, the
 rotation crown (one notch scrolls the current page, never changes pages), live output over the upstream
