@@ -68,8 +68,8 @@ android {
         applicationId = "com.agentsanywhere.app.watch"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2010001
-        versionName = "2.1.0-watch.1"
+        versionCode = 2010002
+        versionName = "2.1.0-watch.2"
         buildConfigField("String", "OFFICIAL_SERVER_URL", officialServerUrl.asBuildConfigString())
 
         vectorDrawables {

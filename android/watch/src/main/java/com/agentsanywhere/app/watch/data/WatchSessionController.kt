@@ -52,6 +52,20 @@ private const val SELECTION_SCOPE_PERMISSION = "permission"
 private const val NOTICE_TIMEOUT_MILLIS = 4_000L
 
 /**
+ * The server's "the runtime is still starting" conflict.
+ *
+ * A runtime that is synchronizing its sessions answers the next request with a 409 whose
+ * `code` is this, and whose *message* is the connector's own phase sentence — DSH says
+ * ("DSH 会话同步中断，正在重试…"). Nothing the user did is wrong and the request usually
+ * succeeds a few seconds later, so it must not be shown as a page failure: as red text it
+ * stayed on screen until the next tap, and read as "the watch is broken".
+ */
+private const val RUNTIME_STARTING_CODE = "runtime_starting"
+
+/** What the watch says instead of the connector's phase sentence. */
+private const val RUNTIME_STARTING_NOTICE = "运行时正在同步，稍后自动恢复。"
+
+/**
  * Everything the three remote-control pages share.
  *
  * The upstream [SessionsController] and [SessionDetailController] already contain the
@@ -143,6 +157,14 @@ class WatchSessionController(
         private set
 
     /**
+     * True when [error] was raised by a refresh the user did not ask for.
+     *
+     * Those clear themselves: the same poll succeeding is the proof that whatever broke is
+     * gone. An error the user caused by tapping something stays until they act again.
+     */
+    private var errorFromBackground = false
+
+    /**
      * True from the moment a message is delivered until the polled runtime status says the turn
      * is over.
      *
@@ -221,6 +243,7 @@ class WatchSessionController(
 
     fun clearError() {
         error = null
+        errorFromBackground = false
     }
 
     fun clearNotice() {
@@ -234,6 +257,7 @@ class WatchSessionController(
                 .onSuccess { loaded ->
                     sessions = loaded
                     sessionsLoading = false
+                    clearBackgroundError()
                     // A device that was unpaired elsewhere must not leave the sidebar filtered to
                     // something that no longer exists.
                     val filter = deviceFilterId
@@ -245,7 +269,7 @@ class WatchSessionController(
                 }
                 .onFailure { failure ->
                     sessionsLoading = false
-                    report(failure, "无法加载会话列表。")
+                    reportBackground(failure, "无法加载会话列表。")
                 }
         }
     }
@@ -553,14 +577,20 @@ class WatchSessionController(
         scope.launch {
             detailController.loadSessionModelCatalog(target)
                 .onSuccess { catalog ->
-                    if (selectedSessionId == target) modelOptions = catalog.selectionOptions()
+                    if (selectedSessionId == target) {
+                        modelOptions = catalog.selectionOptions()
+                        clearBackgroundError()
+                    }
                 }
-                .onFailure { failure -> report(failure, "无法读取模型列表。") }
+                .onFailure { failure -> reportBackground(failure, "无法读取模型列表。") }
             detailController.loadSessionPermissionCatalog(target)
                 .onSuccess { catalog ->
-                    if (selectedSessionId == target) permissionOptions = catalog.selectionOptions()
+                    if (selectedSessionId == target) {
+                        permissionOptions = catalog.selectionOptions()
+                        clearBackgroundError()
+                    }
                 }
-                .onFailure { failure -> report(failure, "无法读取权限列表。") }
+                .onFailure { failure -> reportBackground(failure, "无法读取权限列表。") }
         }
     }
 
@@ -712,7 +742,44 @@ class WatchSessionController(
             onAuthExpired()
             return
         }
+        // "Not yet" is not "broken": a syncing runtime is answered in the line that fades
+        // instead of in the red strip that has to be cleared by another tap.
+        if (failure.isRuntimeStarting()) {
+            errorFromBackground = false
+            error = null
+            notify(RUNTIME_STARTING_NOTICE)
+            return
+        }
+        errorFromBackground = false
         error = describe(failure, fallback)
+    }
+
+    /**
+     * Reports a failure the user did not ask for: a poll, a catalog warm-up.
+     *
+     * A background failure has to expire on its own, because the user never chose it and the
+     * only thing it describes is a path that is already being retried.
+     */
+    private fun reportBackground(failure: Throwable?, fallback: String) {
+        if (failure is ApiException && failure.statusCode == 401) {
+            report(failure, fallback)
+            return
+        }
+        if (failure.isRuntimeStarting()) {
+            errorFromBackground = false
+            error = null
+            notify(RUNTIME_STARTING_NOTICE)
+            return
+        }
+        error = describe(failure, fallback)
+        errorFromBackground = true
+    }
+
+    /** A success on the same path retires a background error; a user-facing one stays. */
+    private fun clearBackgroundError() {
+        if (!errorFromBackground) return
+        errorFromBackground = false
+        error = null
     }
 
     /** One-line message for a failure, without touching the page-level [error] banner. */
@@ -733,6 +800,15 @@ class WatchSessionController(
         }
     }
 }
+
+/**
+ * True for the server's retryable "the runtime is still starting" conflict.
+ *
+ * Kept outside the class so the wire shape can be pinned by a unit test: the page decides
+ * between a red strip and a fading line on exactly this distinction.
+ */
+internal fun Throwable?.isRuntimeStarting(): Boolean =
+    this is ApiException && errorCode == RUNTIME_STARTING_CODE
 
 /** Builds the shared controllers from one authenticated session store. */
 @Composable

@@ -220,6 +220,23 @@ adb logcat -c && adb logcat -s WatchCrown
 **限制**：首句是单行输入（`WatchTextField` 目前 `singleLine = true`，真要多行得给它加参数），
 不支持附件，也不做「先建空会话再决定运行时」。
 
+### 状态与错误提示
+
+手表只有一行地方说「为什么不顺」，这一行分两种：
+
+- **红色横幅**（`WatchErrorBanner`）：用户自己点出来的失败（发送、终止、提交审批）。它一直在，直到
+  下一次操作把它清掉——用户点过，就得看见结果。
+- **会自己消失的状态行**（`notice`，渲染成 `WatchCaption`，4 秒）：后台刷新失败，以及运行时的临时状态。
+
+运行时正在同步会话时，Server 用 `409` + `code = runtime_starting` 回答触碰运行时的请求，消息体是
+Connector 自己的阶段句子（DSH 是「DSH 会话同步中断，正在重试…」）。这不是故障：请求几秒后就会成功。
+所以手表把它换成「运行时正在同步，稍后自动恢复。」放进会消失的那一行，而不是红条——红条一旦写上，
+在下一次点击之前都不会消失，看起来就像手表坏了。
+
+同一套判断也用在后台路径上：轮询与目录预取失败只写 `errorFromBackground`，下一次成功（`refreshSessions`
+或目录加载）就自动清掉；`report()` 仍然留给用户动作。判定只看 `ApiException.errorCode`，别的 409
+（`runtime_conflict`、`runtime_not_configured`）照旧是要读的错误，见 `RuntimeStartingTest`。
+
 ---
 
 ## 二、登录与注册（和上游协议一致）

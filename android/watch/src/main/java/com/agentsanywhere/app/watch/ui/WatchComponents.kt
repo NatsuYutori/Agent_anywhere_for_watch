@@ -61,6 +61,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -411,6 +412,11 @@ fun WatchErrorBanner(message: String, modifier: Modifier = Modifier) {
                 color = colors.errorText,
                 fontSize = 11.sp,
                 lineHeight = 14.sp,
+                // Three lines is already a third of the usable height; anything longer is a
+                // server sentence that belongs in the transcript, not in a strip that squeezes
+                // it out of the panel.
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }

@@ -12,6 +12,7 @@
 ### Android
 
 - 手表端可以按工作设备筛选会话；一个账号接多台设备时，同名工作目录会分别标出所属设备，新建对话也能直接指定设备、运行时和目录，写好第一句话即可开始。（[android/watch](android/watch/README.zh-CN.md)）
+- 手表端不再把「运行时正在同步会话」当成错误：这类提示只在状态行短暂出现「运行时正在同步，稍后自动恢复。」，后台刷新失败也会在恢复后自动消失，不再有需要手动点掉的红条。（[`2.1.0-watch.2`](https://github.com/NatsuYutori/Agent_anywhere_for_watch/releases/tag/v2.1.0-watch.2)）
 
 ## 2.1.0（2026-10-27）
 
